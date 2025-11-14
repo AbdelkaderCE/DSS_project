@@ -366,7 +366,9 @@ function updateEventDisplay() {
     if (!eventDescription) return;
     
     if (gameState && gameState.current_event && gameState.current_event !== 'None') {
-        eventDescription.textContent = gameState.current_event;
+        // Display event name and description
+        const eventText = gameState.current_event.name || gameState.current_event.description || 'Event active';
+        eventDescription.textContent = eventText;
         eventDescription.parentElement.parentElement.style.display = 'flex';
     } else {
         eventDescription.textContent = 'No active event';
@@ -1134,7 +1136,19 @@ function showDaySummary(summary) {
     const modal = document.getElementById('daySummaryModal');
     const content = document.getElementById('daySummaryContent');
     
-    let html = `
+    let html = '';
+    
+    // Show event if present
+    if (summary.event && summary.event.name) {
+        html += `
+            <div class="event-banner">
+                <h3>${summary.event.name}</h3>
+                <p>${summary.event.description}</p>
+            </div>
+        `;
+    }
+    
+    html += `
         <div class="summary-stats">
             <div class="summary-item">
                 <span class="summary-label">Revenue:</span>
