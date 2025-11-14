@@ -83,13 +83,11 @@ class StockGame:
             'new_unlocks': []
         }
         
-        # === STEP 1: Apply Daily Event (10% chance) ===
-        self.current_event = None
-        if random.random() < 0.1:  # 10% chance of event
-            self.current_event = GameCatalog.generate_random_event(self.unlocked_products)
-            if self.current_event:
-                self.event_history.append(self.current_event)
-                day_report['event'] = self.current_event.to_dict()
+        # === STEP 1: Apply Daily Event (50% chance) ===
+        self.current_event = GameCatalog.generate_random_event(self.unlocked_products)
+        if self.current_event:
+            self.event_history.append(self.current_event)
+            day_report['event'] = self.current_event.to_dict()
         
         # Get event multipliers
         demand_multiplier = 1.0
