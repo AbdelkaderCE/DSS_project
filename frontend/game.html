@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Management Game - Complete Edition</title>
+    <link rel="stylesheet" href="game-style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="game-container">
+        <!-- ========== HEADER BAR ========== -->
+        <header class="header-bar">
+            <div class="header-left">
+                <h1>📦 Stock Management Game</h1>
+                <button class="btn btn-start" onclick="startGame()">🎮 New Game</button>
+                <button class="btn btn-next" onclick="nextDay()" id="nextDayBtn" disabled>⏭️ Next Day</button>
+            </div>
+            <div class="header-stats">
+                <div class="header-stat">
+                    <span class="stat-icon">📅</span>
+                    <div class="stat-content">
+                        <span class="stat-label">Day</span>
+                        <span class="stat-value" id="headerDay">-</span>
+                    </div>
+                </div>
+                <div class="header-stat budget-stat">
+                    <span class="stat-icon">💰</span>
+                    <div class="stat-content">
+                        <span class="stat-label">Budget</span>
+                        <span class="stat-value" id="headerBudget">$0.00</span>
+                    </div>
+                </div>
+                <div class="header-stat event-stat" id="eventDisplay">
+                    <span class="stat-icon">🎲</span>
+                    <div class="stat-content">
+                        <span class="stat-label">Event</span>
+                        <span class="stat-value event-text" id="eventDescription">No active event</span>
+                    </div>
+                </div>
+                <div class="header-stat notifications-stat" id="notificationsIcon" onclick="toggleNotifications()">
+                    <span class="stat-icon">🔔</span>
+                    <div class="stat-content">
+                        <span class="stat-label">Alerts</span>
+                        <span class="stat-value notification-count" id="notificationCount">0</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Notifications Dropdown -->
+        <div id="notificationsDropdown" class="notifications-dropdown" style="display: none;">
+            <div class="dropdown-header">
+                <h3>🔔 Notifications</h3>
+                <button class="btn-close" onclick="toggleNotifications()">×</button>
+            </div>
+            <div class="dropdown-content" id="notificationsList">
+                <p class="no-notifications">No alerts</p>
+            </div>
+        </div>
+
+        <!-- ========== MAIN DASHBOARD WITH TABS ========== -->
+        <div class="dashboard">
+            <!-- Tab Navigation -->
+            <nav class="tab-nav">
+                <button class="tab-btn active" onclick="switchTab('inventory')">
+                    📦 Inventory
+                </button>
+                <button class="tab-btn" onclick="switchTab('store')">
+                    🏪 Store
+                </button>
+                <button class="tab-btn" onclick="switchTab('dss')">
+                    🎯 DSS Panel
+                </button>
+                <button class="tab-btn" onclick="switchTab('charts')">
+                    📊 Charts
+                </button>
+                <button class="tab-btn" onclick="switchTab('report')">
+                    📋 Daily Report
+                </button>
+            </nav>
+
+            <!-- Tab Content Container -->
+            <div class="tab-content-container">
+                
+                <!-- ========== INVENTORY TAB ========== -->
+                <div id="inventoryTab" class="tab-content active">
+                    <div class="tab-header">
+                        <h2>📦 Inventory Management</h2>
+                        <div class="tab-actions">
+                            <button class="btn btn-secondary" onclick="getState()">🔄 Refresh</button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-wrapper">
+                        <table class="inventory-table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Stock</th>
+                                    <th>Demand</th>
+                                    <th>Sale Price</th>
+                                    <th>Storage Cost</th>
+                                    <th>Restock Cost</th>
+                                    <th>Reorder Point</th>
+                                    <th>EOQ</th>
+                                    <th>Days Left</th>
+                                    <th>Quantity</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventoryTableBody">
+                                <tr>
+                                    <td colspan="11" class="empty-state">
+                                        <div class="empty-icon">📭</div>
+                                        <p>Start a new game to manage inventory</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Quick Stats Under Table -->
+                    <div class="quick-stats">
+                        <div class="quick-stat">
+                            <span class="qs-label">Total Products:</span>
+                            <span class="qs-value" id="totalProducts">0</span>
+                        </div>
+                        <div class="quick-stat">
+                            <span class="qs-label">Total Stock Value:</span>
+                            <span class="qs-value" id="totalStockValue">$0.00</span>
+                        </div>
+                        <div class="quick-stat">
+                            <span class="qs-label">Items Low Stock:</span>
+                            <span class="qs-value danger" id="lowStockCount">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========== STORE TAB ========== -->
+                <div id="storeTab" class="tab-content">
+                    <div class="tab-header">
+                        <h2>🏪 Store - Unlock New Products</h2>
+                        <div class="tab-actions">
+                            <select id="storeFilter" class="filter-select" onchange="filterStore()">
+                                <option value="all">All Categories</option>
+                                <option value="Electronics">📱 Electronics</option>
+                                <option value="Food & Beverage">🍔 Food & Beverage</option>
+                                <option value="Office Supplies">📝 Office Supplies</option>
+                                <option value="Premium">🎁 Premium</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="store-grid" id="storeGrid">
+                        <div class="empty-state">
+                            <div class="empty-icon">🏪</div>
+                            <p>Start a game to see available products</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========== DSS PANEL TAB ========== -->
+                <div id="dssTab" class="tab-content">
+                    <div class="tab-header">
+                        <h2>🎯 Decision Support System</h2>
+                        <div class="tab-actions">
+                            <button class="btn btn-secondary" onclick="refreshDSS()">🔄 Refresh Analysis</button>
+                        </div>
+                    </div>
+
+                    <div class="dss-grid">
+                        <!-- Best Product to Restock -->
+                        <div class="dss-panel">
+                            <div class="dss-panel-header">
+                                <h3>🔝 Best to Restock</h3>
+                                <span class="dss-badge priority">Priority</span>
+                            </div>
+                            <div class="dss-panel-content" id="bestRestockPanel">
+                                <p class="no-data">No recommendations yet</p>
+                            </div>
+                        </div>
+
+                        <!-- Highest Profit Items -->
+                        <div class="dss-panel">
+                            <div class="dss-panel-header">
+                                <h3>💎 Highest Profit</h3>
+                                <span class="dss-badge success">Revenue</span>
+                            </div>
+                            <div class="dss-panel-content" id="highProfitPanel">
+                                <p class="no-data">No data yet</p>
+                            </div>
+                        </div>
+
+                        <!-- Cost Breakdown -->
+                        <div class="dss-panel">
+                            <div class="dss-panel-header">
+                                <h3>💰 Cost Breakdown</h3>
+                                <span class="dss-badge info">Analysis</span>
+                            </div>
+                            <div class="dss-panel-content" id="costBreakdownPanel">
+                                <div class="cost-item">
+                                    <span>Storage Costs:</span>
+                                    <span id="dssStorageCost">$0.00</span>
+                                </div>
+                                <div class="cost-item">
+                                    <span>Restock Costs:</span>
+                                    <span id="dssRestockCost">$0.00</span>
+                                </div>
+                                <div class="cost-item">
+                                    <span>Unlock Costs:</span>
+                                    <span id="dssUnlockCost">$0.00</span>
+                                </div>
+                                <div class="cost-item total">
+                                    <span>Total Costs:</span>
+                                    <span id="dssTotalCost">$0.00</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- High-Risk Items (Low Stock) -->
+                        <div class="dss-panel">
+                            <div class="dss-panel-header">
+                                <h3>⚠️ High-Risk Items</h3>
+                                <span class="dss-badge danger">Alert</span>
+                            </div>
+                            <div class="dss-panel-content" id="highRiskPanel">
+                                <p class="no-data">All items stocked well</p>
+                            </div>
+                        </div>
+
+                        <!-- High Storage Cost Items -->
+                        <div class="dss-panel">
+                            <div class="dss-panel-header">
+                                <h3>📦 High Storage Cost</h3>
+                                <span class="dss-badge warning">Optimize</span>
+                            </div>
+                            <div class="dss-panel-content" id="highStoragePanel">
+                                <p class="no-data">No data yet</p>
+                            </div>
+                        </div>
+
+                        <!-- ROI Analysis -->
+                        <div class="dss-panel full-width">
+                            <div class="dss-panel-header">
+                                <h3>📈 Performance Metrics</h3>
+                                <span class="dss-badge info">KPIs</span>
+                            </div>
+                            <div class="dss-panel-content">
+                                <div class="metrics-grid">
+                                    <div class="metric-card">
+                                        <div class="metric-label">ROI</div>
+                                        <div class="metric-value" id="dssROI">0%</div>
+                                    </div>
+                                    <div class="metric-card">
+                                        <div class="metric-label">Profit Margin</div>
+                                        <div class="metric-value" id="dssProfitMargin">0%</div>
+                                    </div>
+                                    <div class="metric-card">
+                                        <div class="metric-label">Total Revenue</div>
+                                        <div class="metric-value" id="dssRevenue">$0.00</div>
+                                    </div>
+                                    <div class="metric-card">
+                                        <div class="metric-label">Net Profit</div>
+                                        <div class="metric-value" id="dssProfit">$0.00</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========== CHARTS TAB ========== -->
+                <div id="chartsTab" class="tab-content">
+                    <div class="tab-header">
+                        <h2>📊 Visual Analytics</h2>
+                        <div class="tab-actions">
+                            <button class="btn btn-secondary" onclick="refreshCharts()">🔄 Refresh Charts</button>
+                        </div>
+                    </div>
+
+                    <div class="charts-container">
+                        <div class="chart-panel">
+                            <div class="chart-header">
+                                <h3>💰 Budget Evolution</h3>
+                                <div class="chart-legend" id="budgetLegend"></div>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="budgetChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="chart-panel">
+                            <div class="chart-header">
+                                <h3>📦 Stock Levels</h3>
+                                <div class="chart-legend" id="stockLegend"></div>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="stockChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chart Statistics -->
+                    <div class="chart-stats">
+                        <div class="chart-stat-card">
+                            <h4>Budget Trend</h4>
+                            <div class="trend-indicator" id="budgetTrend">
+                                <span class="trend-icon">📈</span>
+                                <span class="trend-text">Calculating...</span>
+                            </div>
+                        </div>
+                        <div class="chart-stat-card">
+                            <h4>Stock Health</h4>
+                            <div class="trend-indicator" id="stockHealth">
+                                <span class="trend-icon">📊</span>
+                                <span class="trend-text">Calculating...</span>
+                            </div>
+                        </div>
+                        <div class="chart-stat-card">
+                            <h4>Peak Budget Day</h4>
+                            <div class="trend-indicator" id="peakDay">
+                                <span class="trend-icon">🏆</span>
+                                <span class="trend-text">N/A</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========== DAILY REPORT TAB ========== -->
+                <div id="reportTab" class="tab-content">
+                    <div class="tab-header">
+                        <h2>📋 Daily Report</h2>
+                        <div class="tab-actions">
+                            <button class="btn btn-secondary" onclick="refreshDailyReport()">🔄 Refresh Report</button>
+                            <button class="btn btn-secondary" onclick="exportReport()">📥 Export</button>
+                        </div>
+                    </div>
+
+                    <div class="report-container" id="reportContainer">
+                        <div class="empty-state">
+                            <div class="empty-icon">📋</div>
+                            <p>No daily report available yet. Advance to the next day to generate a report.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== MODALS ========== -->
+
+    <!-- Day Summary Modal -->
+    <div id="daySummaryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📅 Day Summary</h2>
+                <button class="modal-close" onclick="closeDaySummary()">×</button>
+            </div>
+            <div class="modal-body" id="daySummaryContent">
+                <p>No summary available</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeDaySummary()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div id="gameOverModal" class="modal">
+        <div class="modal-content game-over-modal">
+            <div class="modal-header">
+                <h2>🎮 Game Over</h2>
+            </div>
+            <div class="modal-body" id="gameOverContent">
+                <div class="game-over-icon">💔</div>
+                <h3 id="gameOverReason">Budget depleted</h3>
+                <div class="game-over-stats" id="gameOverStats"></div>
+                <div class="game-over-tips">
+                    <h4>💡 Tips for Next Time:</h4>
+                    <ul>
+                        <li>Monitor reorder points closely</li>
+                        <li>Take advantage of supplier discounts</li>
+                        <li>Unlock high-profit items early</li>
+                        <li>Keep a budget buffer for emergencies</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="restartGame()">🔄 New Game</button>
+                <button class="btn btn-secondary" onclick="closeGameOver()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unlock Confirmation Modal -->
+    <div id="unlockModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🔓 Unlock Product</h2>
+                <button class="modal-close" onclick="closeUnlockModal()">×</button>
+            </div>
+            <div class="modal-body" id="unlockModalContent">
+                <p>Are you sure you want to unlock this product?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="confirmUnlockBtn">✅ Confirm</button>
+                <button class="btn btn-secondary" onclick="closeUnlockModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Processing...</p>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <script src="game-script.js"></script>
+</body>
+</html>
